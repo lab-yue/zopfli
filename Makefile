@@ -1,5 +1,6 @@
 CC ?= gcc
 CXX ?= g++
+EMCC ?= emcc
 
 override CFLAGS := -W -Wall -Wextra -ansi -pedantic -lm -O3 -Wno-unused-function -fPIC $(CFLAGS)
 override CXXFLAGS := -W -Wall -Wextra -ansi -pedantic -O3 -fPIC $(CXXFLAGS)
@@ -22,7 +23,7 @@ ZOPFLIPNGBIN_OBJ := $(patsubst %.cc,obj/%.o,$(ZOPFLIPNGBIN_SRC))
 
 .PHONY: all libzopfli libzopflipng
 
-all: zopfli libzopfli libzopfli.a zopflipng libzopflipng libzopflipng.a
+all: zopfli libzopfli libzopfli.a zopflipng libzopflipng libzopflipng.a zopflipng.js
 
 obj/%.o: %.c
 	@mkdir -p `dirname $@`
@@ -60,6 +61,10 @@ libzopflipng: $(ZOPFLILIB_OBJ) $(LODEPNG_OBJ) $(ZOPFLIPNGLIB_OBJ)
 libzopflipng.a: $(LODEPNG_OBJ) $(ZOPFLIPNGLIB_OBJ)
 	ar rcs $@ $^
 
+# ZopfliPNG js/wasm
+zopflipng.js: $(ZOPFLIPNGBIN_SRC) $(ZOPFLIPNGLIB_SRC) $(ZOPFLILIB_SRC) $(LODEPNG_SRC)
+	$(EMCC) $^ -O3 -s ALLOW_MEMORY_GROWTH=1 -s EXPORT_ES6=1 -s MODULARIZE=1 -s INVOKE_RUN=0 -s EXPORT_NAME="zopflipng" -s "EXPORTED_RUNTIME_METHODS=['FS', 'callMain']" -o $@
+
 # Remove all libraries and binaries
 clean:
-	rm -f zopflipng zopfli $(ZOPFLILIB_OBJ) $(ZOPFLIBIN_OBJ) $(LODEPNG_OBJ) $(ZOPFLIPNGLIB_OBJ) $(ZOPFLIPNGBIN_OBJ) libzopfli*
+	rm -f zopflipng zopfli zopflipng.js zopflipng.wasm $(ZOPFLILIB_OBJ) $(ZOPFLIBIN_OBJ) $(LODEPNG_OBJ) $(ZOPFLIPNGLIB_OBJ) $(ZOPFLIPNGBIN_OBJ) libzopfli*

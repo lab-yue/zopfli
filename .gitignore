@@ -1,0 +1,7 @@
+obj
+*.a
+*.so.*
+zopfli
+zopflipng
+zopflipng.js
+zopflipng.wasm
